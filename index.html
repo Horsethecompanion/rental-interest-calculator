@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rental Interest Deductibility — NZ</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --positive: #16a34a;
+      --positive-bg: #f0fdf4;
+      --highlight: #d1fae5;
+      --navy: #0f172a;
+      --accent: #2563eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+
+    .header {
+      margin-bottom: 1.5rem;
+    }
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .header p {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-top: 0.35rem;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--navy);
+      color: white;
+      padding: 1rem 1.5rem;
+    }
+    .card-header h2 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.75;
+    }
+
+    .card-body { padding: 1.5rem; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 1.5rem;
+    }
+    @media (max-width: 560px) {
+      .fields { grid-template-columns: 1fr; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field.full { grid-column: 1 / -1; }
+
+    .field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .field label span.optional {
+      font-weight: 400;
+      color: var(--text-light);
+      font-size: 0.75rem;
+    }
+    .field label .hint {
+      display: block;
+      font-weight: 400;
+      color: var(--text-light);
+      font-size: 0.72rem;
+      margin-top: 0.15rem;
+    }
+
+    .field input,
+    .field select {
+      padding: 0.65rem 0.9rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .field input:focus,
+    .field select:focus { border-color: var(--accent); }
+
+    .field .prefix {
+      position: relative;
+    }
+    .field .prefix input { padding-left: 1.6rem; }
+    .field .prefix::before {
+      content: '$';
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      font-weight: 600;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+    .field .suffix {
+      position: relative;
+    }
+    .field .suffix input { padding-right: 2.2rem; }
+    .field .suffix::after {
+      content: attr(data-suffix);
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      font-weight: 600;
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    button.calculate {
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 0.85rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button.calculate:hover { background: #1d4ed8; }
+    button.calculate:active { transform: scale(0.99); }
+
+    .result-card { display: none; }
+    .result-card.visible { display: block; }
+
+    /* Result summary */
+    .result-summary {
+      padding: 1.25rem 1.5rem;
+      background: var(--positive-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .result-summary .big-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--positive);
+    }
+    .result-summary .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #166534;
+      margin-top: 0.2rem;
+    }
+
+    .result-detail {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1.5rem;
+    }
+    @media (max-width: 480px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.875rem;
+    }
+    .detail-row .label { color: var(--text-light); }
+    .detail-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .detail-row.highlight {
+      background: #fef9c3;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border-bottom: none;
+      margin: 0.25rem 0;
+    }
+    .detail-row.highlight .label {
+      color: #713f12;
+      font-weight: 700;
+    }
+    .detail-row.highlight .value { color: #713f12; }
+
+    .detail-row.result-positive {
+      background: var(--positive-bg);
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border-bottom: none;
+      margin: 0.25rem 0;
+    }
+    .detail-row.result-positive .label {
+      color: #166534;
+      font-weight: 700;
+    }
+    .detail-row.result-positive .value {
+      color: var(--positive);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .detail-row.spacer { height: 0.5rem; border: none; }
+
+    .comparison-section {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+    }
+    .comparison-section h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+    }
+
+    .bar-group { margin-bottom: 0.6rem; }
+    .bar-group .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-bottom: 0.25rem;
+    }
+    .bar-group .bar-label span.value { font-weight: 600; color: var(--text); }
+    .bar-bg {
+      background: #e8eef7;
+      border-radius: 4px;
+      height: 18px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bar-fill.blue { background: var(--accent); }
+    .bar-fill.green { background: var(--positive); }
+    .bar-fill.red { background: #dc2626; }
+    .bar-fill.gray { background: #94a3b8; }
+
+    .note {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-light);
+      line-height: 1.5;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <h1>🏠 Rental Interest Deductibility Calculator</h1>
+      <p>See how much tax you save by claiming mortgage interest as a deductible expense on your rental property, compared to a world without interest deductibility.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Your Rental Property Details</h2>
+      </div>
+      <div class="card-body">
+        <div class="fields">
+          <div class="field">
+            <label for="rentalIncome">Annual Rental Income</label>
+            <div class="field prefix">
+              <input type="number" id="rentalIncome" placeholder="e.g. 28000" min="0">
+            </div>
+          </div>
+          <div class="field">
+            <label for="otherExpenses">Other Annual Expenses <span class="optional">(optional)</span></label>
+            <div class="field prefix">
+              <input type="number" id="otherExpenses" placeholder="e.g. 3000" min="0">
+            </div>
+            <span class="hint">Repairs, insurance, body corp, property management, etc.</span>
+          </div>
+          <div class="field">
+            <label for="mortgageBalance">Outstanding Mortgage Balance</label>
+            <div class="field prefix">
+              <input type="number" id="mortgageBalance" placeholder="e.g. 350000" min="0">
+            </div>
+          </div>
+          <div class="field">
+            <label for="interestRate">Mortgage Interest Rate</label>
+            <div class="field suffix" data-suffix="%">
+              <input type="number" id="interestRate" placeholder="e.g. 6.7" min="0" step="0.1">
+            </div>
+          </div>
+          <div class="field full">
+            <label for="taxRate">Your Marginal Tax Rate</label>
+            <select id="taxRate">
+              <option value="0.105">10.5% — Income up to $14,000</option>
+              <option value="0.175">17.5% — $14,001 to $48,000</option>
+              <option value="0.205">20.5% — $48,001 to $70,000</option>
+              <option value="0.30">30% — $70,001 to $180,000</option>
+              <option value="0.33" selected>33% — $180,001+</option>
+              <option value="0.39">39% — Scaled rate ( scheduler )</option>
+            </select>
+          </div>
+        </div>
+        <button class="calculate" onclick="calculate()">Calculate Tax Saving</button>
+      </div>
+    </div>
+
+    <div class="card result-card" id="resultCard">
+      <div class="card-header">
+        <h2>Results</h2>
+      </div>
+      <div class="result-summary">
+        <div class="big-number" id="bigSaving">$0</div>
+        <div class="label">Annual tax saved thanks to interest deductibility</div>
+      </div>
+      <div class="result-detail">
+        <div class="detail-grid">
+
+          <div class="detail-row">
+            <span class="label">Annual rental income</span>
+            <span class="value" id="rentalIncomeOut">$0</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Annual interest paid</span>
+            <span class="value" id="interestPaid">$0</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Other deductible expenses</span>
+            <span class="value" id="otherExpensesOut">$0</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Total expenses (incl. interest)</span>
+            <span class="value" id="totalExpenses">$0</span>
+          </div>
+
+          <div class="detail-row spacer"></div>
+          <div class="detail-row spacer"></div>
+
+          <div class="detail-row highlight">
+            <span class="label">Taxable rental income — with deductibility</span>
+            <span class="value" id="taxableWith">$0</span>
+          </div>
+          <div class="detail-row highlight">
+            <span class="label">Taxable rental income — without deductibility</span>
+            <span class="value" id="taxableWithout">$0</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">Tax on rental (with deductibility)</span>
+            <span class="value" id="taxWith">$0</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Tax on rental (without deductibility)</span>
+            <span class="value" id="taxWithout">$0</span>
+          </div>
+
+          <div class="detail-row spacer"></div>
+          <div class="detail-row spacer"></div>
+
+          <div class="detail-row result-positive">
+            <span class="label">Your annual tax saving</span>
+            <span class="value" id="annualSaving">$0</span>
+          </div>
+          <div class="detail-row result-positive">
+            <span class="label">Tax saving as % of rental income</span>
+            <span class="value" id="savingPct">0%</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="comparison-section">
+        <h3>Before & After — How Interest Deductibility Works</h3>
+        <div class="bar-group">
+          <div class="bar-label">
+            <span>Taxable rental income — <strong>with</strong> interest deductibility</span>
+            <span class="value" id="barWithLabel">$0</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill blue" id="barWith" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label">
+            <span>Taxable rental income — <strong>without</strong> interest deductibility</span>
+            <span class="value" id="barWithoutLabel">$0</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" id="barWithout" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label">
+            <span>Your tax saving</span>
+            <span class="value" id="barSavingLabel" style="color:#16a34a;font-weight:700">$0</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" id="barSaving" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>How this works:</strong> With interest deductibility, your rental taxable income = (rental income − all deductible expenses including interest). Without it, taxable income = (rental income − non-interest expenses only). The difference in tax payable at your marginal rate is your saving. Since 1 April 2025, residential rental property interest is fully deductible again.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function fmt(n) {
+      return '$' + Math.round(n).toLocaleString('en-NZ');
+    }
+    function fmtPct(n) {
+      return Math.round(n * 100) + '%';
+    }
+
+    function calculate() {
+      const rentalIncome = parseFloat(document.getElementById('rentalIncome').value) || 0;
+      const otherExpenses = parseFloat(document.getElementById('otherExpenses').value) || 0;
+      const mortgageBalance = parseFloat(document.getElementById('mortgageBalance').value) || 0;
+      const interestRate = parseFloat(document.getElementById('interestRate').value) || 0;
+      const taxRate = parseFloat(document.getElementById('taxRate').value) || 0.33;
+
+      if (rentalIncome <= 0 || mortgageBalance <= 0 || interestRate <= 0) {
+        alert('Please fill in rental income, mortgage balance, and interest rate.');
+        return;
+      }
+
+      const interestPaid = mortgageBalance * (interestRate / 100);
+      const totalExpenses = interestPaid + otherExpenses;
+
+      // With interest deductibility (current rules since Apr 2025)
+      const taxableWith = Math.max(0, rentalIncome - totalExpenses);
+      const taxWith = taxableWith * taxRate;
+
+      // Without interest deductibility
+      const taxableWithout = Math.max(0, rentalIncome - otherExpenses);
+      const taxWithout = taxableWithout * taxRate;
+
+      // The saving
+      const annualSaving = taxWithout - taxWith;
+      const savingPct = rentalIncome > 0 ? annualSaving / rentalIncome : 0;
+
+      // Output values
+      document.getElementById('rentalIncomeOut').textContent = fmt(rentalIncome);
+      document.getElementById('interestPaid').textContent = fmt(interestPaid);
+      document.getElementById('otherExpensesOut').textContent = fmt(otherExpenses);
+      document.getElementById('totalExpenses').textContent = fmt(totalExpenses);
+      document.getElementById('taxableWith').textContent = fmt(taxableWith);
+      document.getElementById('taxableWithout').textContent = fmt(taxableWithout);
+      document.getElementById('taxWith').textContent = fmt(taxWith);
+      document.getElementById('taxWithout').textContent = fmt(taxWithout);
+      document.getElementById('annualSaving').textContent = fmt(annualSaving);
+      document.getElementById('savingPct').textContent = fmtPct(savingPct);
+      document.getElementById('bigSaving').textContent = fmt(annualSaving);
+
+      // Bar chart scaling — use max of taxable income as the baseline
+      const maxTaxable = Math.max(taxableWith, taxableWithout, 1);
+      document.getElementById('barWith').style.width = (taxableWith / maxTaxable * 100) + '%';
+      document.getElementById('barWithout').style.width = (taxableWithout / maxTaxable * 100) + '%';
+      document.getElementById('barSaving').style.width = (annualSaving / maxTaxable * 100) + '%';
+      document.getElementById('barWithLabel').textContent = fmt(taxableWith);
+      document.getElementById('barWithoutLabel').textContent = fmt(taxableWithout);
+      document.getElementById('barSavingLabel').textContent = fmt(annualSaving);
+
+      document.getElementById('resultCard').classList.add('visible');
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('interestRate').addEventListener('keydown', e => {
+      if (e.key === 'Enter') calculate();
+    });
+    ['rentalIncome', 'otherExpenses', 'mortgageBalance'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') calculate();
+      });
+    });
+  </script>
+</body>
+</html>
