@@ -327,14 +327,13 @@
           </div>
           <div class="field full">
             <label for="taxRate">Your Marginal Tax Rate</label>
-            <select id="taxRate">
-              <option value="0.105">10.5% — Income up to $14,000</option>
-              <option value="0.175">17.5% — $14,001 to $48,000</option>
-              <option value="0.205">20.5% — $48,001 to $70,000</option>
-              <option value="0.30">30% — $70,001 to $180,000</option>
-              <option value="0.33" selected>33% — $180,001+</option>
-              <option value="0.39">39% — Scaled rate ( scheduler )</option>
-            </select>
+           <select id="taxRate">
+  <option value="0.105">10.5% — Income up to $15,600</option>
+  <option value="0.175">17.5% — $15,601 to $53,500</option>
+  <option value="0.30">30% — $53,501 to $78,100</option>
+  <option value="0.33" selected>33% — $78,101 to $180,000</option>
+  <option value="0.39">39% — $180,001+</option>
+</select>
           </div>
         </div>
         <button class="calculate" onclick="calculate()">Calculate Tax Saving</button>
